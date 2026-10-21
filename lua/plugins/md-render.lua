@@ -1,17 +1,22 @@
 return {
-  {
-    "techwizrd/render-latex.nvim",
-    ft = "markdown",
-    -- options live in config/options.lua as vim.g.render_latex
-    opts = function()
-      return vim.g.render_latex or {}
-    end,
-  },
-
-  -- let render-latex own math; render-markdown keeps the rest of the markdown
+  -- render-markdown draws $...$ and $$...$$ math as unicode text via utftex
+  -- (d_{in} -> dᵢₙ). utftex comes from libtexprintf, built into ~/.local/bin.
   {
     "MeanderingProgrammer/render-markdown.nvim",
     optional = true,
-    opts = { latex = { enabled = false } },
+    opts = {
+      latex = {
+        enabled = true,
+        converter = "utftex",
+        inline = true,
+        block = true,
+      },
+    },
+  },
+
+  -- render-markdown finds math with the latex parser (tree-sitter CLI needed to generate it)
+  {
+    "nvim-treesitter/nvim-treesitter",
+    opts = { ensure_installed = { "latex" } },
   },
 }
