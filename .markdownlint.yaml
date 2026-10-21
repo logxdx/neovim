@@ -1,0 +1,4 @@
+# base markdownlint config, passed to markdownlint-cli2 via --config (lua/plugins/markdownlint.lua).
+# a project's own .markdownlint* file still takes precedence.
+MD013:
+  line_length: 120
