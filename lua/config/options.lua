@@ -1,13 +1,31 @@
--- Loaded before lazy.nvim starts. Only overrides of LazyVim's defaults belong here:
--- https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
+-- Options are automatically loaded before lazy.nvim startup
+-- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
+-- Add any additional options here
 
--- 4-space indentation (LazyVim defaults to 2)
-vim.opt.tabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.softtabstop = 4
+-- basics
+vim.opt.number = true -- line numbers
+vim.opt.relativenumber = true -- relative line numbers
+vim.opt.cursorline = true -- highlight current line
 
-vim.opt.showmatch = true -- briefly jump to the matching bracket
+-- tabbing & indentation
+vim.opt.tabstop = 4 -- tab width
+vim.opt.shiftwidth = 4 -- indent width
+vim.opt.softtabstop = 4 -- soft tab stop
+vim.opt.expandtab = true -- use spaces instead of tabs
+vim.opt.smartindent = true -- smart auto-indent
+vim.opt.autoindent = true -- copy indent from previous line
+vim.opt.grepprg = "rg --vimgrep" -- use ripgrep instead of grep
+vim.opt.grepformat = "%f:%l:%c:%m" -- filename, line number, column, content
 
--- Python LSP: ty instead of pyright. LazyVim's python extra reads this at spec-load
--- time, so it has to live here rather than in lua/plugins/python.lua.
+-- search settings
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.hlsearch = true
+vim.opt.incsearch = true
+
+-- visual settings
+vim.opt.termguicolors = true
+vim.opt.showmatch = true
+
+-- python LSP: ty (astral, rust) instead of pyright. must be set before plugins load.
 vim.g.lazyvim_python_lsp = "ty"

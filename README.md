@@ -6,7 +6,7 @@
 init.lua                  entry point
 lua/config/
   lazy.lua                lazy.nvim bootstrap + setup
-  options.lua             overrides of LazyVim's default options
+  options.lua             editor options (incl. LazyVim defaults, for reference)
   keymaps.lua             extra keymaps (loaded on VeryLazy)
   autocmds.lua            extra autocmds (loaded on VeryLazy)
   transparency.lua        clears theme backgrounds, re-applied on :colorscheme
