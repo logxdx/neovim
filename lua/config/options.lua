@@ -26,3 +26,6 @@ vim.opt.incsearch = true
 -- visual settings
 vim.opt.termguicolors = true
 vim.opt.showmatch = true
+
+-- python LSP: ty (astral, rust) instead of pyright. must be set before plugins load.
+vim.g.lazyvim_python_lsp = "ty"
