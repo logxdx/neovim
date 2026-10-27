@@ -61,6 +61,20 @@ return {
     },
     config = function(_, opts)
       require("render_latex").setup(opts)
+
+      -- render-latex finds the window's text area from the screen position of the top
+      -- line's first char. With smoothscroll and a long wrapped top line that char is
+      -- scrolled off (screenpos row 0), so it placed no images at all. Use the window's
+      -- own geometry instead.
+      require("render_latex.viewport").visible_text_bounds = function(winid)
+        local info = vim.fn.getwininfo(winid)[1]
+        if not info then
+          return nil, nil
+        end
+        local top = info.winrow + (info.winbar or 0)
+        return top, top + info.height - 1
+      end
+
       local Worker = require("render_latex.worker")
       local request_batch = Worker.request_batch
       Worker.request_batch = function(items, callback)
