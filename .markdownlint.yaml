@@ -1,4 +1,5 @@
 # base markdownlint config, passed to markdownlint-cli2 via --config (lua/plugins/markdownlint.lua).
 # a project's own .markdownlint* file still takes precedence.
-MD013:
-  line_length: 120
+# MD013 (line length) off: --fix can't wrap prose, and hard-wrapping obsidian notes is unwanted;
+# long lines are soft-wrapped on screen instead (LazyVim sets wrap for markdown).
+MD013: false
