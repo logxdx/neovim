@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""utftex wrapper for render-markdown's latex converter.
+
+Unicode only has sub/superscript forms for some characters, so utftex draws e.g.
+f_y on two lines. render-markdown shows only the middle line of multi-line output
+inline, so $f_y$ appeared as just "y". Here any _/^ group utftex can't draw on one
+line is rewritten to a literal "_y" / "^{ab}"; groups it can (d_{in} -> dᵢₙ) stay.
+"""
+
+import subprocess
+import sys
+
+# private-use placeholders: utftex passes them through, and its own \_ escape is buggy
+LITERAL = {"_": "", "^": ""}
+
+
+def utftex(src):
+    proc = subprocess.run(["utftex"], input=src, capture_output=True, text=True)
+    return proc.stdout if proc.returncode == 0 else None
+
+
+def one_line(out):
+    return out is not None and "\n" not in out.rstrip("\n")
+
+
+def command(src, i):
+    """End index of the \\command (or \\symbol) starting at src[i]."""
+    j = i + 1
+    if j < len(src) and src[j].isalpha():
+        while j < len(src) and src[j].isalpha():
+            j += 1
+        return j
+    return min(j + 1, len(src))
+
+
+def group(src, i):
+    """End index of the {...} group starting at src[i], past the closing brace."""
+    depth = 0
+    while i < len(src):
+        if src[i] == "\\":
+            i = command(src, i)
+            continue
+        depth += {"{": 1, "}": -1}.get(src[i], 0)
+        i += 1
+        if depth == 0:
+            break
+    return i
+
+
+def single(arg):
+    return len(arg) == 1 or (arg[:1] == "\\" and command(arg, 0) == len(arg))
+
+
+def flatten(src, separate=False):
+    out = []
+    script = False  # last thing emitted was a _/^ group
+    i = 0
+    while i < len(src):
+        c = src[i]
+        if c == "\\":
+            j = command(src, i)
+            out.append(src[i:j])
+            script = False
+            i = j
+        elif c in LITERAL:
+            j = i + 1
+            while j < len(src) and src[j] == " ":
+                j += 1
+            if j >= len(src):
+                out.append(src[i:])
+                break
+            if src[j] == "{":
+                k = group(src, j)
+                arg = flatten(src[j + 1 : k - 1], separate)
+            else:
+                k = command(src, j) if src[j] == "\\" else j + 1
+                arg = src[j:k]
+            if one_line(utftex(f"x{c}{{{arg}}}")):
+                # utftex stacks a sub and sup on one base (2 lines); {} keeps them side by side
+                out.append(("{}" if script and separate else "") + f"{c}{{{arg}}}")
+            elif single(arg):
+                out.append(LITERAL[c] + "{" + arg + "}")
+            else:
+                out.append(LITERAL[c] + "\\{" + arg + "\\}")
+            script = True
+            i = k
+        else:
+            out.append(c)
+            script = script and c == " "
+            i += 1
+    return "".join(out)
+
+
+def main():
+    src = sys.stdin.read()
+    out = utftex(src)
+    if out is None:
+        sys.exit(1)
+    if not one_line(out):
+        flat = utftex(flatten(src))
+        if flat is not None:
+            out = flat
+    if not one_line(out):
+        # separating sub+sup also moves \sum limits aside, so only keep it if it fixes the layout
+        flat = utftex(flatten(src, separate=True))
+        if one_line(flat):
+            out = flat
+    for c, placeholder in LITERAL.items():
+        out = out.replace(placeholder, c)
+    sys.stdout.write(out)
+
+
+if __name__ == "__main__":
+    main()
