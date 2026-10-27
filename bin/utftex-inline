@@ -47,6 +47,39 @@ def group(src, i):
     return i
 
 
+def untag(src):
+    """utftex fails on \\tag, \\label, \\notag; show tags at the right like LaTeX, drop the rest."""
+    out = []
+    tags = []
+    i = 0
+    while i < len(src):
+        if src[i] != "\\":
+            out.append(src[i])
+            i += 1
+            continue
+        j = command(src, i)
+        name = src[i + 1 : j]
+        if name in ("notag", "nonumber"):
+            i = j
+            continue
+        if name in ("tag", "label"):
+            star = name == "tag" and src[j : j + 1] == "*"
+            k = j + 1 if star else j
+            while k < len(src) and src[k] == " ":
+                k += 1
+            if src[k : k + 1] == "{":
+                e = group(src, k)
+                arg = src[k + 1 : e - 1]
+                if name == "tag":
+                    tags.append(arg if star else f"({arg})")
+                i = e
+                continue
+        out.append(src[i:j])
+        i = j
+    body = "".join(out).strip()
+    return body + "".join(r" \qquad " + t for t in tags)
+
+
 def single(arg):
     return len(arg) == 1 or (arg[:1] == "\\" and command(arg, 0) == len(arg))
 
@@ -92,7 +125,7 @@ def flatten(src, separate=False):
 
 
 def main():
-    src = sys.stdin.read()
+    src = untag(sys.stdin.read())
     out = utftex(src)
     if out is None:
         sys.exit(1)
